@@ -208,7 +208,7 @@ function inspect.inspect(rootObject, options)
 
   local function putTable(t)
     if alreadyVisited(t) then
-      puts('<table ', getId(t), '>')
+      puts('<', type(t), ' ', getId(t), '>')
     elseif level >= depth then
       puts('{...}')
     else
@@ -271,7 +271,7 @@ function inspect.inspect(rootObject, options)
         puts(smartQuote(escape(v)))
       elseif tv == 'number' or tv == 'boolean' or tv == 'nil' then
         puts(tostring(v))
-      elseif tv == 'table' then
+      elseif tv == 'table' or tv == 'romtable' then
         putTable(v)
       else
         puts('<',tv,' ',getId(v),'>')
