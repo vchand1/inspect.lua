@@ -162,29 +162,28 @@ local function makePath(path, ...)
 end
 
 local function processRecursive(process, item, path, visited)
+  if item == nil then return nil end
+  if visited[item] then return visited[item] end
 
-    if item == nil then return nil end
-    if visited[item] then return visited[item] end
+  local processed = process(item, path)
+  if type(processed) == 'table' then
+    local processedCopy = {}
+    visited[item] = processedCopy
+    local processedKey
 
-    local processed = process(item, path)
-    if type(processed) == 'table' then
-      local processedCopy = {}
-      visited[item] = processedCopy
-      local processedKey
-
-      for k,v in pairs(processed) do
-        processedKey = processRecursive(process, k, makePath(path, k, inspect.KEY), visited)
-        if processedKey ~= nil then
-          processedCopy[processedKey] = processRecursive(process, v, makePath(path, processedKey), visited)
-        end
+    for k,v in pairs(processed) do
+      processedKey = processRecursive(process, k, makePath(path, k, inspect.KEY), visited)
+      if processedKey ~= nil then
+        processedCopy[processedKey] = processRecursive(process, v, makePath(path, processedKey), visited)
       end
-
-      local mt  = processRecursive(process, getmetatable(processed), makePath(path, inspect.METATABLE), visited)
-      if type(mt) ~= 'table' then mt = nil end -- ignore not nil/table __metatable field
-      setmetatable(processedCopy, mt)
-      processed = processedCopy
     end
-    return processed
+
+    local mt  = processRecursive(process, getmetatable(processed), makePath(path, inspect.METATABLE), visited)
+    if type(mt) ~= 'table' then mt = nil end -- ignore not nil/table __metatable field
+    setmetatable(processedCopy, mt)
+    processed = processedCopy
+  end
+  return processed
 end
 
 
@@ -303,7 +302,7 @@ function Inspector:putValue(v)
   elseif tv == 'table' then
     self:putTable(v)
   else
-    self:puts('<',tv,' ',self:getId(v),'>')
+    self:puts('<', tv, ' ', self:getId(v), '>')
   end
 end
 
